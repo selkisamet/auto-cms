@@ -202,6 +202,7 @@ $(function () {
             $(document.body).append(html);
             let m = new bootstrap.Modal(document.getElementById('labelModal'));
             m.show();
+            setTimeout(function () { $('#labelModal input[name="label"]').focus(); }, 300);
             $('#label-form').on('submit', function (e) {
                 e.preventDefault();
                 showSpinner();
@@ -364,9 +365,7 @@ $(function () {
                     thead += `<th>${escapeHtml(c.label)}`;
                     // Label düzenleme sadece yönetici
                     if (currentUser && currentUser.role === 'yonetici') {
-                        if (!(table === 'cms_field_labels' && c.COLUMN_NAME === 'table_name')) {
-                            thead += ` <a href="#" class="label-edit" data-col="${escapeHtml(c.COLUMN_NAME)}" data-label="${escapeHtml(c.label)}" style="font-size:0.8rem; margin-left:6px">✎</a>`;
-                        }
+                        thead += ` <a href="#" class="label-edit" data-col="${escapeHtml(c.COLUMN_NAME)}" data-label="${escapeHtml(c.label)}" style="font-size:0.8rem; margin-left:6px">✎</a>`;
                     }
                     thead += `</th>`;
                 });
@@ -482,13 +481,20 @@ $(function () {
         // --- FORM ---
         function getInputForColumn(col, value = '') {
             let name = col.COLUMN_NAME;
-            let labelHtml = `<div class="d-flex justify-content-between align-items-center">
-                                                    <label class="form-label mb-1">${col.label || name}</label>`;
-            // Label düzenleme sadece admin
-            if (currentUser && currentUser.role === 'yonetici') {
-                if (!(currentTable === 'cms_field_labels' && name === 'table_name')) {
+            // created_at alanını formda gösterme
+            if (currentTable === 'cms_field_labels' && name === 'table_name') {
+                let labelHtml = `<div class="d-flex justify-content-between align-items-center"><label class="form-label mb-1">${col.label || name}</label>`;
+                if (currentUser && currentUser.role === 'yonetici') {
                     labelHtml += `<a href="#" class="label-edit" data-col="${name}" data-label="${col.label || name}">Düzenle</a>`;
                 }
+                labelHtml += `</div>`;
+                return `<div class="mb-3">${labelHtml}<input class="form-control" name="${name}" value="${escapeHtml(value)}" readonly disabled></div>`;
+            }
+            if (name === 'created_at') return '';
+            let labelHtml = `<div class="d-flex justify-content-between align-items-center"><label class="form-label mb-1">${col.label || name}</label>`;
+            // Label düzenleme sadece admin
+            if (currentUser && currentUser.role === 'yonetici') {
+                labelHtml += `<a href="#" class="label-edit" data-col="${name}" data-label="${col.label || name}">Düzenle</a>`;
             }
             labelHtml += `</div>`;
             let required = col.IS_NULLABLE === 'NO' ? 'required' : '';
